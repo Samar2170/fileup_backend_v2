@@ -1,0 +1,15 @@
+.env
+
+uploads/*
+
+storage.db
+
+*.db
+
+.vscode/
+
+.DS_Store
+
+logs/*
+storage.db
+fileupbackendv2

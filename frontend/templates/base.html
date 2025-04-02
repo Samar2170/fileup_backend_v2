@@ -1,0 +1,24 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<main>
+
+      <body class="h-screen">
+        <div class="flex w-full h-full">
+          <!-- Left section - 1/5 width -->
+          <div class="w-1/5">
+            {{template "sidebar" .}}
+            </div>
+          
+          <!-- Right section - 4/5 width -->
+          <div id="content" class="w-4/5 bg-gray-100 p-4">
+            {{template "content" .}}
+        </div>
+        </div>
+      </body>
+
+      
+</main>

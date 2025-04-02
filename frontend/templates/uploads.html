@@ -1,0 +1,178 @@
+{{define "content"}}
+<body class="bg-gray-100 p-8">
+  <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+      <input 
+          type="file" 
+          id="fileInput" 
+          class="block w-full text-sm text-gray-500 
+          file:mr-4 file:py-2 file:px-4
+          file:rounded-full file:border-0
+          file:text-sm file:font-semibold
+          file:bg-blue-50 file:text-blue-700
+          hover:file:bg-blue-100"
+      >
+      <div>
+        <label for="location" class="block mt-4 text-sm/6 font-medium text-gray-900">Location</label>
+        <div class="mt-2 grid grid-cols-1">
+          <select id="folder" name="folder" class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+            <option></option>
+            {{range .folders}}
+            <option>{{.Path}}</option>
+            {{end}}
+          </select>
+          <svg class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" data-slot="icon">
+            <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+          </svg>
+        </div>
+      </div>
+      <button 
+          id="uploadButton" 
+          class="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+      >
+          Upload File
+      </button>
+      
+      <div id="status" class="mt-4 text-center"></div>
+  </div>
+
+  <script>
+      document.addEventListener('DOMContentLoaded', () => {
+          const fileInput = document.getElementById('fileInput');
+          const uploadButton = document.getElementById('uploadButton');
+          const statusDiv = document.getElementById('status');
+          const folder = document.getElementById('folder');
+          const apiBaseUrl =  'https://storage.barebasics.shop';
+
+          uploadButton.addEventListener('click', async () => {
+              // Get the selected file
+              const file = fileInput.files[0];
+              if (!file) {
+                  statusDiv.innerHTML = '<p class="text-red-500">No file selected</p>';
+                  return;
+              }
+
+              // Retrieve token from localStorage
+              const apiKeyCookie = document.cookie.split('; ').find(row => row.startsWith('api-key='));
+              
+              if (!apiKeyCookie) {
+                  statusDiv.innerHTML = '<p class="text-red-500">No authentication token found</p>';
+                  return;
+              }
+
+              // Create FormData
+              const formData = new FormData();
+              formData.append('file', file);
+              if (folder.value !== '') {
+                formData.append('folder', folder.value);
+              }
+
+              try {
+                  // Show loading state
+                  statusDiv.innerHTML = `
+                      <div class="flex items-center justify-center">
+                          <svg class="animate-spin h-5 w-5 mr-3 text-blue-500" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>Uploading...</span>
+                      </div>
+                  `;
+                    const apiKey = apiKeyCookie.split('=')[1];
+                  // Send request
+                  const response = await fetch(apiBaseUrl+'files/upload/', {
+                      method: 'POST',
+                      headers: {
+                          'X-API-Key': apiKey,
+                          // Uncomment if not using FormData
+                          // 'Content-Type': 'application/octet-stream'
+                      },
+                      body: formData
+                  });
+
+                  // Handle response
+                  if (!response.ok) {
+                      const errorText = await response.text();
+                      throw new Error(errorText || 'Upload failed');
+                  }
+
+                  const result = await response.json();
+
+                  // Success state
+                  statusDiv.innerHTML = `
+                      <p class="text-green-500">
+                          Upload successful! 
+                          ${result.message ? result.message : 'File uploaded'}
+                      </p>
+                  `;
+
+                  // Optional: clear file input after successful upload
+                  fileInput.value = '';
+
+              } catch (error) {
+                  // Error handling
+                  console.error('Upload error:', error);
+                  statusDiv.innerHTML = `
+                      <p class="text-red-500">
+                          Upload failed: ${error.message}
+                      </p>
+                  `;
+              }
+          });
+      });
+
+      // Optional: Set token from cookie to localStorage on page load
+      document.addEventListener('DOMContentLoaded', () => {
+          // Extract token from cookie
+          const cookies = document.cookie.split('; ');
+          const tokenCookie = cookies.find(row => row.startsWith('api-key='));
+          
+          if (tokenCookie) {
+              const token = tokenCookie.split('=')[1];
+              localStorage.setItem('api-key', token);
+          }
+      });
+  </script>
+  </body>
+<!-- <form>
+    <div class="space-y-12">
+      <div class="border-b border-gray-900/10 pb-12">
+        <h2 class="text-base/7 font-semibold text-gray-900">Profile</h2>
+        <p class="mt-1 text-sm/6 text-gray-600">This information will be displayed publicly so be careful what you share.</p>
+          <div class="col-span-full">
+            <label for="cover-photo" class="block text-sm/6 font-medium text-gray-900">Cover photo</label>
+            <div class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
+              <div class="text-center">
+                <svg class="mx-auto size-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon">
+                  <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.97.97a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z" clip-rule="evenodd" />
+                </svg>
+                <div class="mt-4 flex text-sm/6 text-gray-600">
+                  <label for="file-upload" class="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500">
+                    <span>Upload a file</span>
+                    <input id="file-upload" name="file-upload" type="file" class="sr-only">
+                  </label>
+                  <p class="pl-1">or drag and drop</p>
+                </div>
+                <p class="text-xs/5 text-gray-600">PNG, JPG, GIF up to 10MB</p>
+              </div>
+            </div>
+          </div>
+          <div class="mt-6 flex items-center justify-end gap-x-6">
+            <button type="button" class="text-sm/6 font-semibold text-gray-900">Cancel</button>
+            <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Save</button>
+          </div>      
+        </div>
+      </div>
+  
+      </div>
+  
+    </div>
+  
+  </form>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const fileInput = document.getElementById("file-upload");
+      const uploadButton = document.getElementById("upload-button");
+    })
+  </script> -->
+  
+{{end}}
