@@ -2,7 +2,7 @@ package main
 
 import (
 	"fileupbackendv2/config"
-	"fileupbackendv2/internal/storage"
+	"fileupbackendv2/internal/dirManager"
 	"fileupbackendv2/internal/storage/image"
 	"fileupbackendv2/pkg/logging"
 	"time"
@@ -27,8 +27,8 @@ func StartCronServer() {
 		}
 	})
 	s.Every(1).Hour().Do(func() {
-		storage.UpdateDirsData()
-		storage.UpdateUserDirsData()
+		dirManager.UpdateDirsData()
+		dirManager.UpdateUserDirsData()
 
 	})
 	s.StartBlocking()

@@ -1,4 +1,4 @@
-package storage
+package dirManager
 
 import (
 	"fileupbackendv2/config"

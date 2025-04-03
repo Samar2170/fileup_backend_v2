@@ -6,9 +6,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fileupbackendv2/config"
+	"fileupbackendv2/internal/auth"
 	"fileupbackendv2/internal/db"
+	"fileupbackendv2/internal/models"
 	"fileupbackendv2/internal/storage/image"
-	storagemodels "fileupbackendv2/internal/storage/storageModels"
 	"fmt"
 	"io"
 	"io/fs"
@@ -31,12 +32,12 @@ func SaveFile(file multipart.File, fileHeader *multipart.FileHeader, username, f
 	}
 	defer f.Close()
 	tx := db.StorageDB.Begin()
-	user, err := storagemodels.GetUserByUsername(username)
+	user, err := models.GetUserByUsername(username)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
-	fmd := storagemodels.FileMetadata{
+	fmd := models.FileMetadata{
 		Name:     fileHeader.Filename,
 		FilePath: pathFromUploadsDir,
 		UserID:   user.ID,
@@ -59,7 +60,7 @@ func SaveFile(file multipart.File, fileHeader *multipart.FileHeader, username, f
 }
 
 func GetSignedUrl(filePath string, userId string) (string, error) {
-	var fmd storagemodels.FileMetadata
+	var fmd models.FileMetadata
 	db.StorageDB.Where("file_path = ? AND user_id = ?", filePath, userId).First(&fmd)
 
 	expiresAt := time.Now().Add(600 * time.Minute).Unix()
@@ -70,8 +71,8 @@ func GetSignedUrl(filePath string, userId string) (string, error) {
 	return fmt.Sprintf("%s?signature=%s&expires_at=%d", filePath, hex.EncodeToString(signature[:]), expiresAt), nil
 }
 
-func GetFiles(userId string) ([]storagemodels.FileMetadata, error) {
-	var files []storagemodels.FileMetadata
+func GetFiles(userId string) ([]models.FileMetadata, error) {
+	var files []models.FileMetadata
 	err := db.StorageDB.Where("user_id = ?", userId).Find(&files).Error
 	return files, err
 }
@@ -117,7 +118,7 @@ func GetSizeForDirEntry(file fs.DirEntry) float64 {
 }
 
 func FindFiles(apiKey string, folder string) ([]DirEntry, float64, error) {
-	user, err := GetUserByKey(apiKey)
+	user, err := auth.GetUserByKey(apiKey)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -146,7 +147,7 @@ func FindFiles(apiKey string, folder string) ([]DirEntry, float64, error) {
 		})
 	}
 	var folderSize float64
-	folderData, err := storagemodels.GetDirByPathorName(pathFromUploadsDir, folder, user.Username)
+	folderData, err := models.GetDirByPathorName(pathFromUploadsDir, folder, user.Username)
 	if err == nil {
 		folderSize = folderData.SizeInMb
 	}
@@ -169,7 +170,7 @@ func splitPathTillUserDir(path string, username string) string {
 }
 
 func GetAllFolders(apiKey string) ([]FolderEntry, error) {
-	user, err := GetUserByKey(apiKey)
+	user, err := auth.GetUserByKey(apiKey)
 	if err != nil {
 		return nil, err
 	}

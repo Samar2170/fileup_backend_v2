@@ -1,10 +1,10 @@
-package storage
+package dirManager
 
 import (
 	"errors"
 	"fileupbackendv2/config"
 	"fileupbackendv2/internal/db"
-	storagemodels "fileupbackendv2/internal/storage/storageModels"
+	"fileupbackendv2/internal/models"
 	"fileupbackendv2/pkg/logging"
 	"fmt"
 	"os"
@@ -39,11 +39,11 @@ func UpdateDirsData() error {
 	}
 	for _, f := range fs {
 		if f.IsDir() {
-			user, err := storagemodels.GetUserByUsername(f.Name())
+			user, err := models.GetUserByUsername(f.Name())
 			if err != nil {
 				return errors.New(fmt.Sprintf("error for %s -> %s", err.Error(), user.Username))
 			}
-			dir := storagemodels.GetOrCreateDir(user.ID, f.Name(), true)
+			dir := models.GetOrCreateDir(user.ID, f.Name(), true)
 			size, err := GetFolderSize(filepath.Join(uploadsDir, f.Name()))
 			if err != nil {
 				dir.HasError = true
@@ -57,7 +57,7 @@ func UpdateDirsData() error {
 	return nil
 }
 func UpdateUserDirsData() {
-	var users []storagemodels.UserAPIKey
+	var users []models.User
 	db.StorageDB.Find(&users)
 
 	for _, user := range users {
@@ -77,14 +77,14 @@ func cleanPathForSubDir(path, username string) string {
 }
 func SubDirsData(username string) error {
 	userDir := filepath.Join(config.BaseDir, config.UploadsDir, username)
-	user, err := storagemodels.GetUserByUsername(username)
+	user, err := models.GetUserByUsername(username)
 	if err != nil {
 		return err
 	}
 	err = filepath.WalkDir(userDir, func(path string, d os.DirEntry, err error) error {
 		logging.AuditLogger.Println(path)
 		if d.IsDir() {
-			dir := storagemodels.GetOrCreateDir(user.ID, d.Name(), false)
+			dir := models.GetOrCreateDir(user.ID, d.Name(), false)
 			size, err := GetFolderSize(path)
 			dir.Path = cleanPathForSubDir(path, username)
 			if err != nil {

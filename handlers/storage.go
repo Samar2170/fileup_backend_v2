@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"fileupbackendv2/internal/dirManager"
 	"fileupbackendv2/internal/storage"
 	"fileupbackendv2/pkg/logging"
 	"fileupbackendv2/pkg/response"
@@ -49,7 +50,7 @@ func CreateFolderHandler(w http.ResponseWriter, r *http.Request) {
 	if folderPath == "" {
 		response.BadRequestResponse(w, "Folder path is required")
 	}
-	err := storage.CreateFolder(username, folderPath)
+	err := dirManager.CreateFolder(username, folderPath)
 	if err != nil {
 		logging.Errorlogger.Error().Msg(err.Error())
 		response.InternalServerErrorResponse(w, err.Error())

@@ -1,10 +1,14 @@
 package main
 
-import "fileupbackendv2/internal/storage"
+import (
+	"fmt"
+)
 
 func migrate() {
-	storage.Migrate()
+	fmt.Println("Not implemented")
+	// storage.Migrate()
 }
 func checkMigration() {
-	storage.CheckMigrationSuccessFull()
+	fmt.Println("Not implemented")
+	// storage.CheckMigrationSuccessFull()
 }

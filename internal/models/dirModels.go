@@ -1,4 +1,4 @@
-package storagemodels
+package models
 
 import (
 	"fileupbackendv2/internal/db"
@@ -13,7 +13,7 @@ type Directory struct {
 	Name      string
 	Path      string
 	UserID    uuid.UUID
-	User      UserAPIKey
+	User      User
 	SizeInMb  float64
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -1,4 +1,4 @@
-package storagemodels
+package models
 
 import (
 	"fileupbackendv2/internal/db"
@@ -9,30 +9,42 @@ import (
 )
 
 func init() {
-	db.StorageDB.AutoMigrate(&UserAPIKey{})
+	db.StorageDB.AutoMigrate(&User{})
 	db.StorageDB.AutoMigrate(&FileMetadata{})
 	db.StorageDB.AutoMigrate(&Directory{})
 }
 
-type UserAPIKey struct {
+type User struct {
 	*gorm.Model
-	ID       uuid.UUID
-	Username string
-	APIKey   string
-	PIN      string `gorm:"column:pin;varchar(6)"`
+	ID         uuid.UUID
+	Username   string `gorm:"index;unique"`
+	Password   string
+	Email      string `gorm:"index;unique"`
+	APIKey     string
+	IsVerified bool
 }
 
-func (UserAPIKey) TableName() string {
-	return "user_api_keys"
+func (User) TableName() string {
+	return "users"
+}
+func CheckUsernameExists(username string) bool {
+	var count int64
+	db.StorageDB.Where("username = ?", username).Count(&count)
+	return count > 0
+}
+func CheckEmailExists(email string) bool {
+	var count int64
+	db.StorageDB.Where("email = ?", email).Count(&count)
+	return count > 0
 }
 
-func GetUserById(id uint) (UserAPIKey, error) {
-	var user UserAPIKey
+func GetUserById(id string) (User, error) {
+	var user User
 	err := db.StorageDB.Where("id = ?", id).First(&user).Error
 	return user, err
 }
-func GetUserByUsername(username string) (UserAPIKey, error) {
-	var user UserAPIKey
+func GetUserByUsername(username string) (User, error) {
+	var user User
 	err := db.StorageDB.Where("username = ?", username).First(&user).Error
 	return user, err
 }
@@ -42,7 +54,7 @@ type FileMetadata struct {
 	Name     string    `gorm:"index"`
 	FilePath string    `gorm:"index"`
 	UserID   uuid.UUID `gorm:"index"`
-	User     UserAPIKey
+	User     User
 	SizeInMb float64
 	IsPublic bool
 

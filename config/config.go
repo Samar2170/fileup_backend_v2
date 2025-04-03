@@ -2,7 +2,6 @@ package config
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -33,14 +32,14 @@ const (
 )
 
 func init() {
-	currentFile, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-	BaseDir = filepath.Dir(currentFile)
+	// currentFile, err := os.Executable()
+	// if err != nil {
+	// panic(err)
+	// }
+	// BaseDir = filepath.Dir(currentFile)
 
-	BaseDir = filepath.Dir(currentFile)
-	// BaseDir = "/Users/samararora/Desktop/fileup-backend/"
+	// BaseDir = filepath.Dir(currentFile)
+	BaseDir = "/Users/samararora/Desktop/PROJECTS/fileup-backend-v2/"
 	godotenv.Load(BaseDir + "/.env")
 
 	MODE = os.Getenv("MODE")

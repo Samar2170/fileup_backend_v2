@@ -7,7 +7,7 @@ import (
 	"image/jpeg"
 	"image/png"
 
-	storagemodels "fileupbackendv2/internal/storage/storageModels"
+	"fileupbackendv2/internal/models"
 	"fileupbackendv2/internal/utils"
 	"fileupbackendv2/pkg/logging"
 	"log"
@@ -24,7 +24,7 @@ const (
 )
 
 func MarkImages() error {
-	var fmds []storagemodels.FileMetadata
+	var fmds []models.FileMetadata
 	err := db.StorageDB.
 		Where("is_image IS NULL OR is_image = ?", false).
 		Find(&fmds).Error
@@ -106,7 +106,7 @@ func CompressImage(fpath string, quality int) error {
 }
 
 func CompressImages(quality int) error {
-	var fmds []storagemodels.FileMetadata
+	var fmds []models.FileMetadata
 	err := db.StorageDB.
 		Where("compressed_version_available = ? OR compressed_version_available IS NULL", false).
 		Where("is_image = ?", true).
