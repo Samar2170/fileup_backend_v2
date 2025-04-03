@@ -49,6 +49,7 @@ func CreateFolderHandler(w http.ResponseWriter, r *http.Request) {
 	folderPath := r.FormValue("folder")
 	if folderPath == "" {
 		response.BadRequestResponse(w, "Folder path is required")
+		return
 	}
 	err := dirManager.CreateFolder(username, folderPath)
 	if err != nil {
